@@ -1,0 +1,8 @@
+### Personal ###
+bin/
+.classpath
+.gradle/
+.project
+.settings/
+settings.gradle
+gradle/
