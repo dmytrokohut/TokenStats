@@ -27,4 +27,10 @@ task compileContracts(type: JavaExec) {
 task generateWrappers(type: JavaExec) {
 	group 'Personal'
 	description 'Generate wrappers of classes for Solidity Smart Contracts'
+	
+	classpath = sourceSets.main.runtimeClasspath
+	main = 'com.dkohut.iconomi.generators.WrapperGenerator'
+	args 'src/main/java/resources/contracts/build'
+	args 'src/main/java'
+	args 'com.dkohut.iconomi.wrappers'
 }

@@ -33,7 +33,7 @@ public class SmartContractCompiler {
 
 	}
 	
-	public static void compileSmartContract(String fileName) {
+	private static void compileSmartContract(String fileName) {
 		ProcessBuilder compilerProcess = new ProcessBuilder(
 				"solc",
 				pathToFiles + "/" + fileName,
