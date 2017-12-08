@@ -1,5 +1,9 @@
 package com.dkohut.iconomi.common.entity;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+
 public class TransferEvent {
 	
 	private Integer id;
@@ -9,7 +13,7 @@ public class TransferEvent {
 	private Integer blockNumber;
 	private String transactionHash;
 	private String contractAddress;
-	private Long creationDate;
+	private Timestamp creationDate;
 	
 	
 	public TransferEvent() {
@@ -17,14 +21,16 @@ public class TransferEvent {
 	}
 	
 	public TransferEvent(
+			Integer id,
 			String receiver, 
 			String sender, 
 			Integer value, 
 			Integer blockNumber, 
 			String transactionHash, 
 			String contractAddress, 
-			Long creationDate 			
+			Timestamp creationDate 			
 	)	{		
+		this.id = id;
 		this.receiver = receiver;
 		this.sender = sender;
 		this.value = value;
@@ -89,13 +95,26 @@ public class TransferEvent {
 	public void setContractAddress(String contractAddress) {
 		this.contractAddress = contractAddress;
 	}
-
-	public Long getCreationDate() {
+	
+	public Timestamp getCreationDate() {
 		return creationDate;
 	}
 
-	public void setCreationDate(Long creationDate) {
+	public void setCreationDate(Timestamp creationDate) {
 		this.creationDate = creationDate;
+	}
+
+	public static TransferEvent getTransferEvent(ResultSet resultSet) throws SQLException {
+		return new TransferEvent(
+				resultSet.getInt("id"), 
+				resultSet.getString("receiver"), 
+				resultSet.getString("sender"),
+				resultSet.getInt("value"), 
+				resultSet.getInt("block_number"), 
+				resultSet.getString("transaction_hash"),
+				resultSet.getString("contract_address"), 
+				resultSet.getTimestamp("creation_date")
+				);
 	}
 	
 }
