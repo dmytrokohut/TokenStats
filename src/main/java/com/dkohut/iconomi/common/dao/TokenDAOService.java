@@ -22,8 +22,8 @@ public class TokenDAOService implements ITokenDAOService {
 			"SELECT id, receiver, sender, value, block_number, transaction_hash, contract_address, creation_date " +
 			"FROM transfer_events";
 	private static final String QUERY_INSERT =
-			"INSERT INTO transfer_events(receiver, sender, block_number, transaction_hash, contract_address, creation_date) " +
-			"VALUES(:receiver, :sender, :blockNumber, :transactionHash, :contractAddress, :creationDate)";
+			"INSERT INTO transfer_events(receiver, sender, value, block_number, transaction_hash, contract_address, creation_date) " +
+			"VALUES(:receiver, :sender, :value, :blockNumber, :transactionHash, :contractAddress, :creationDate)";
 	
 	private static final String URL = "jdbc:mysql://localhost:3306/iconomi_token";
 	private static final String USERNAME = "root";
@@ -73,6 +73,7 @@ public class TokenDAOService implements ITokenDAOService {
 			
 			parameters.put("receiver", transferEvent.getReceiver());
 			parameters.put("sender", transferEvent.getSender());
+			parameters.put("value", transferEvent.getValue());
 			parameters.put("blockNumber", transferEvent.getBlockNumber());
 			parameters.put("transactionHash", transferEvent.getTransactionHash());
 			parameters.put("contractAddress", transferEvent.getContractAddress());

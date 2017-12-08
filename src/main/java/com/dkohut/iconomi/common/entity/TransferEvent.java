@@ -6,11 +6,11 @@ import java.sql.Timestamp;
 
 public class TransferEvent {
 	
-	private Integer id;
+	private Long id;
 	private String receiver;
 	private String sender;
-	private Integer value;
-	private Integer blockNumber;
+	private Long value;
+	private Long blockNumber;
 	private String transactionHash;
 	private String contractAddress;
 	private Timestamp creationDate;
@@ -21,11 +21,11 @@ public class TransferEvent {
 	}
 	
 	public TransferEvent(
-			Integer id,
+			Long id,
 			String receiver, 
 			String sender, 
-			Integer value, 
-			Integer blockNumber, 
+			Long value, 
+			Long blockNumber, 
 			String transactionHash, 
 			String contractAddress, 
 			Timestamp creationDate 			
@@ -40,11 +40,11 @@ public class TransferEvent {
 		this.creationDate = creationDate;
 	}
 
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -64,19 +64,19 @@ public class TransferEvent {
 		this.sender = sender;
 	}
 
-	public Integer getValue() {
+	public Long getValue() {
 		return value;
 	}
 
-	public void setValue(Integer value) {
+	public void setValue(Long value) {
 		this.value = value;
 	}
 
-	public Integer getBlockNumber() {
+	public Long getBlockNumber() {
 		return blockNumber;
 	}
 
-	public void setBlockNumber(Integer blockNumber) {
+	public void setBlockNumber(Long blockNumber) {
 		this.blockNumber = blockNumber;
 	}
 
@@ -95,7 +95,7 @@ public class TransferEvent {
 	public void setContractAddress(String contractAddress) {
 		this.contractAddress = contractAddress;
 	}
-	
+
 	public Timestamp getCreationDate() {
 		return creationDate;
 	}
@@ -106,11 +106,11 @@ public class TransferEvent {
 
 	public static TransferEvent getTransferEvent(ResultSet resultSet) throws SQLException {
 		return new TransferEvent(
-				resultSet.getInt("id"), 
+				resultSet.getLong("id"), 
 				resultSet.getString("receiver"), 
 				resultSet.getString("sender"),
-				resultSet.getInt("value"), 
-				resultSet.getInt("block_number"), 
+				resultSet.getLong("value"), 
+				resultSet.getLong("block_number"), 
 				resultSet.getString("transaction_hash"),
 				resultSet.getString("contract_address"), 
 				resultSet.getTimestamp("creation_date")
