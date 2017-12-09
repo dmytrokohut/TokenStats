@@ -13,8 +13,9 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.dkohut.iconomi.common.entity.TransferEvent;
+import com.dkohut.iconomi.common.interfaces.IFileGenerator;
 
-public class FileGenerator {
+public class FileGenerator implements IFileGenerator {
 
 	private static final Logger logger = Logger.getLogger(FileGenerator.class.getName());
 	

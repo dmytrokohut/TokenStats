@@ -16,10 +16,11 @@ import org.web3j.protocol.core.methods.response.EthBlock.TransactionObject;
 import org.web3j.protocol.http.HttpService;
 
 import com.dkohut.iconomi.common.entity.TransferEvent;
+import com.dkohut.iconomi.common.interfaces.ITokenController;
 import com.dkohut.iconomi.wrappers.IconomiToken;
 
-public class TokenController {
-
+public class TokenController implements ITokenController {
+	
 	private static final String CONTRACT_ADDRESS = "0x888666CA69E0f178DED6D75b5726Cee99A87D698";
 	private static final String PASSWORD = "";
 	private static final String PATH_TO_WALLET_FILE = "";
@@ -34,15 +35,13 @@ public class TokenController {
 	private List<TransferEvent> transferEventsList = new ArrayList<>();
 	
 	
-	public boolean setWeb3j() {
+	public void setWeb3j() {
 		web3j = Web3j.build(new HttpService("http://localhost:8545"));
-		return true;
 	}
 	
-	public boolean setCredentials() {
+	public void setCredentials() {
 		try {
 			credentials = WalletUtils.loadCredentials(PASSWORD, PATH_TO_WALLET_FILE);
-			return true;
 		} catch (IOException | CipherException e) {
 			logger.log(Level.SEVERE, "ERROR! Credentials was not loaded !\n" + e.getMessage());
 			e.printStackTrace();
@@ -50,16 +49,17 @@ public class TokenController {
 		}		
 	}
 	
-	public boolean loadContract() {
+	public void loadContract() {
 		token = IconomiToken.load(CONTRACT_ADDRESS, web3j, credentials, IconomiToken.GAS_PRICE, IconomiToken.GAS_LIMIT);
-		return true;
 	}
 	
-	public void loadTransactions() {
+	public boolean loadTransactions() {
+		logger.info("Start of transactions downloading");
 		web3j.replayBlocksObservable(
 				new DefaultBlockParameterNumber(SEPTEMBER_START_BLOCK), 
 				new DefaultBlockParameterNumber(SEPTEMBER_END_BLOCK), 
 				true)
+			.doOnTerminate(TokenController::exit)
 			.subscribe(block -> {
 				block.getBlock()
 					.getTransactions()
@@ -69,12 +69,11 @@ public class TokenController {
 						return transaction.getTo().equals(CONTRACT_ADDRESS) || transaction.getFrom().equals(CONTRACT_ADDRESS);
 					})
 					.forEach(transaction -> {
-						logger.info("Block number = " + transaction.getBlockNumber().intValue() + 
-								"\t\tBlock hash = " + transaction.getBlockHash());
+						logger.info("Remain blocks: " + (SEPTEMBER_END_BLOCK - transaction.getBlockNumber().longValue()));
 						web3j.ethGetTransactionReceipt(transaction.getHash())
 							.sendAsync()
 							.thenAccept(transactionReceipt -> {
-								logger.info("Contract address = " + transactionReceipt.getResult().getContractAddress());
+								transactionReceipt.getResult().setContractAddress(CONTRACT_ADDRESS);
 								token.getTransferEvents(transactionReceipt.getResult())
 									.forEach(event -> {
 										TransferEvent transferEvent = new TransferEvent();
@@ -91,6 +90,16 @@ public class TokenController {
 							});
 					});
 			});
+		
+		return true;
 	}
+	
+	public List<TransferEvent> getTransferEventsList() {
+		return transferEventsList;
+	}
+	
+	private static void exit() {
+		Runtime.getRuntime().exit(0);
+	}	
 	
 }
