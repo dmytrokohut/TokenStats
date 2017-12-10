@@ -1,8 +1,5 @@
 package com.dkohut.iconomi;
 
-import com.dkohut.iconomi.common.dao.TokenDAOService;
-import com.dkohut.iconomi.common.statistics.FileGenerator;
-import com.dkohut.iconomi.controller.GeneralController;
 import com.dkohut.iconomi.controller.TokenController;
 
 public class Main {
@@ -10,15 +7,11 @@ public class Main {
 	public static void main(String[] args) {		
 		System.out.println(greeting());
 
-		GeneralController controller = new GeneralController(
-				new TokenController(),
-				new FileGenerator(),
-				new TokenDAOService()
-				); 
-		
-		controller.loadTransactions();
-		controller.uploadTransactions();
-		controller.generateFile();
+		TokenController controller = new TokenController();
+		controller.setWeb3j();
+		controller.setCredentials();
+		controller.loadContract();
+		controller.loadTransactions();		
 	}
 	
 	private static String greeting() {

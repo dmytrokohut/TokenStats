@@ -2,8 +2,6 @@ package com.dkohut.iconomi.controller;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,12 +13,15 @@ import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.response.EthBlock.TransactionObject;
 import org.web3j.protocol.http.HttpService;
 
+import com.dkohut.iconomi.common.dao.TokenDAOService;
 import com.dkohut.iconomi.common.entity.TransferEvent;
 import com.dkohut.iconomi.common.interfaces.ITokenController;
+import com.dkohut.iconomi.common.statistics.FileGenerator;
 import com.dkohut.iconomi.wrappers.IconomiToken;
 
 public class TokenController implements ITokenController {
 	
+	private static final String LOCALHOST = "http://localhost:8545";
 	private static final String CONTRACT_ADDRESS = "0x888666CA69E0f178DED6D75b5726Cee99A87D698";
 	private static final String PASSWORD = "";
 	private static final String PATH_TO_WALLET_FILE = "";
@@ -31,12 +32,12 @@ public class TokenController implements ITokenController {
 	
 	private Web3j web3j;
 	private Credentials credentials;
-	private IconomiToken token;
-	private List<TransferEvent> transferEventsList = new ArrayList<>();
+	private IconomiToken token;	
 	
+	private static TokenDAOService tokenDAOService = new TokenDAOService();
 	
 	public void setWeb3j() {
-		web3j = Web3j.build(new HttpService("http://localhost:8545"));
+		web3j = Web3j.build(new HttpService(LOCALHOST));
 	}
 	
 	public void setCredentials() {
@@ -50,16 +51,17 @@ public class TokenController implements ITokenController {
 	}
 	
 	public void loadContract() {
-		token = IconomiToken.load(CONTRACT_ADDRESS, web3j, credentials, IconomiToken.GAS_PRICE, IconomiToken.GAS_LIMIT);
+		token = IconomiToken.load(CONTRACT_ADDRESS, web3j, credentials,	IconomiToken.GAS_PRICE, IconomiToken.GAS_LIMIT);
 	}
 	
-	public boolean loadTransactions() {
+	public void loadTransactions() {
 		logger.info("Start of transactions downloading");
 		web3j.replayBlocksObservable(
 				new DefaultBlockParameterNumber(SEPTEMBER_START_BLOCK), 
 				new DefaultBlockParameterNumber(SEPTEMBER_END_BLOCK), 
 				true)
-			.doOnTerminate(TokenController::exit)
+			.doOnCompleted(TokenController::generateFile)
+			.doOnError(TokenController::logError)
 			.subscribe(block -> {
 				block.getBlock()
 					.getTransactions()
@@ -70,6 +72,7 @@ public class TokenController implements ITokenController {
 					})
 					.forEach(transaction -> {
 						logger.info("Remain blocks: " + (SEPTEMBER_END_BLOCK - transaction.getBlockNumber().longValue()));
+						TokenDAOService.setConnection();
 						web3j.ethGetTransactionReceipt(transaction.getHash())
 							.sendAsync()
 							.thenAccept(transactionReceipt -> {
@@ -84,22 +87,26 @@ public class TokenController implements ITokenController {
 										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
 										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
 										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue()));
-										transferEventsList.add(transferEvent);
+										tokenDAOService.insert(transferEvent);
 									});
 								
 							});
 					});
 			});
+	}
+	
+	public static void generateFile() {	
+		FileGenerator fileGenerator = new FileGenerator();
+		boolean response = fileGenerator.generateFile(tokenDAOService.getAll());
 		
-		return true;
+		if(response == true) {
+			logger.info("File generated.");
+		}
 	}
 	
-	public List<TransferEvent> getTransferEventsList() {
-		return transferEventsList;
-	}
-	
-	private static void exit() {
-		Runtime.getRuntime().exit(0);
+	public static void logError(Throwable throwable) {
+		logger.log(Level.SEVERE, "Error during transactions loading\n" + throwable.getMessage());
+		throwable.getStackTrace();
 	}	
 	
 }

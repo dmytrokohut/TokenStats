@@ -26,12 +26,15 @@ public class TokenDAOService implements ITokenDAOService {
 			"VALUES(:receiver, :sender, :value, :blockNumber, :transactionHash, :contractAddress, :creationDate)";
 	
 	private static final String URL = "jdbc:mysql://localhost:3306/iconomi_token";
-	private static final String USERNAME = "";
-	private static final String PASSWORD = "";
+	private static final String USERNAME = "root";
+	private static final String PASSWORD = "root";
 	private static final Logger logger = Logger.getLogger(TokenDAOService.class.getName());
 	
-	private static Connection connection;	
+	private static Connection connection;
 	
+	public TokenDAOService() {
+		setConnection();
+	}
 	
 	public static void setConnection() {
 		try {
