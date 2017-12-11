@@ -76,7 +76,6 @@ public class TokenController implements ITokenController {
 						web3j.ethGetTransactionReceipt(transaction.getHash())
 							.sendAsync()
 							.thenAccept(transactionReceipt -> {
-								transactionReceipt.getResult().setContractAddress(CONTRACT_ADDRESS);
 								token.getTransferEvents(transactionReceipt.getResult())
 									.forEach(event -> {
 										TransferEvent transferEvent = new TransferEvent();
