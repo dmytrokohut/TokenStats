@@ -21,14 +21,15 @@ import com.dkohut.iconomi.wrappers.IconomiToken;
 
 public class TokenController implements ITokenController {
 	
-	private static final String LOCALHOST = "http://localhost:8545";
-	private static final String CONTRACT_ADDRESS = "0x888666CA69E0f178DED6D75b5726Cee99A87D698";
-	private static final String PASSWORD = "";
-	private static final String PATH_TO_WALLET_FILE = "";
+	private static final String HOST = "http://localhost:8545";
+	private static final String CONTRACT_ADDRESS = "0x888666CA69E0f178DED6D75b5726Cee99A87D698".toLowerCase();
+	private static final String PASSWORD = "ether1998";
+	private static final String PATH_TO_WALLET_FILE = "/home/dkohut/.ethereum/keystore/"
+			+ "UTC--2017-12-05T18-01-18.787929411Z--9f5a41ccf09d026ad7866ae44f4cca5e95c37454";
 	private static final Logger logger = Logger.getLogger(TokenController.class.getName());
 	
-	private static long SEPTEMBER_START_BLOCK = 4221144L;
-	private static long SEPTEMBER_END_BLOCK = 4325717L;
+	private static long SEPTEMBER_FIRST_BLOCK = 4224657L;
+	private static long SEPTEMBER_LAST_BLOCK = 4325758L;
 	
 	private Web3j web3j;
 	private Credentials credentials;
@@ -37,7 +38,7 @@ public class TokenController implements ITokenController {
 	private static TokenDAOService tokenDAOService = new TokenDAOService();
 	
 	public void setWeb3j() {
-		web3j = Web3j.build(new HttpService(LOCALHOST));
+		web3j = Web3j.build(new HttpService(HOST));
 	}
 	
 	public void setCredentials() {
@@ -56,39 +57,37 @@ public class TokenController implements ITokenController {
 	
 	public void loadTransactions() {
 		logger.info("Start of transactions downloading");
+		
 		web3j.replayBlocksObservable(
-				new DefaultBlockParameterNumber(SEPTEMBER_START_BLOCK), 
-				new DefaultBlockParameterNumber(SEPTEMBER_END_BLOCK), 
+				new DefaultBlockParameterNumber(SEPTEMBER_FIRST_BLOCK), 
+				new DefaultBlockParameterNumber(SEPTEMBER_LAST_BLOCK),
 				true)
-			.doOnCompleted(TokenController::generateFile)
 			.doOnError(TokenController::logError)
+			.doOnCompleted(TokenController::generateFile)
 			.subscribe(block -> {
 				block.getBlock()
 					.getTransactions()
 					.stream()
 					.map(transaction -> TransactionObject.class.cast(transaction))
-					.filter(transaction -> {
-						return transaction.getTo().equals(CONTRACT_ADDRESS) || transaction.getFrom().equals(CONTRACT_ADDRESS);
-					})
+					.filter(transaction -> CONTRACT_ADDRESS.equals(transaction.getTo()) || CONTRACT_ADDRESS.equals(transaction.getFrom()))
 					.forEach(transaction -> {
-						logger.info("Remain blocks: " + (SEPTEMBER_END_BLOCK - transaction.getBlockNumber().longValue()));
-						TokenDAOService.setConnection();
+						logger.info("Remain blocks: " + (SEPTEMBER_LAST_BLOCK - transaction.getBlockNumber().longValue()));
 						web3j.ethGetTransactionReceipt(transaction.getHash())
 							.sendAsync()
 							.thenAccept(transactionReceipt -> {
 								token.getTransferEvents(transactionReceipt.getResult())
 									.forEach(event -> {
+										transactionReceipt.getResult().setContractAddress(CONTRACT_ADDRESS);
 										TransferEvent transferEvent = new TransferEvent();
-										transferEvent.setReceiver(event._to.toString());
-										transferEvent.setSender(event._from.toString());
+										transferEvent.setReceiver(event._to.getValue().toString());
+										transferEvent.setSender(event._from.getValue().toString());
 										transferEvent.setValue(event._value.getValue().longValue());
 										transferEvent.setBlockNumber(transactionReceipt.getResult().getBlockNumber().longValue());
 										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
 										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
-										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue()));
+										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue() * 1000));
 										tokenDAOService.insert(transferEvent);
 									});
-								
 							});
 					});
 			});

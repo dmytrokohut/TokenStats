@@ -2,7 +2,7 @@ package com.dkohut.iconomi;
 
 import com.dkohut.iconomi.controller.TokenController;
 
-public class Main {	
+public class Main {
 	
 	public static void main(String[] args) {		
 		System.out.println(greeting());
@@ -11,7 +11,7 @@ public class Main {
 		controller.setWeb3j();
 		controller.setCredentials();
 		controller.loadContract();
-		controller.loadTransactions();
+		controller.loadTransactions();		
 	}
 	
 	private static String greeting() {
