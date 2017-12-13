@@ -78,18 +78,15 @@ public class TokenController implements ITokenController {
 								token.getTransferEvents(transactionReceipt.getResult())
 									.forEach(event -> {
 										transactionReceipt.getResult().setContractAddress(CONTRACT_ADDRESS);
-//										TransferEvent transferEvent = new TransferEvent();
-//										transferEvent.setReceiver(event._to.getValue().toString());
-//										transferEvent.setSender(event._from.getValue().toString());
-//										transferEvent.setValue(event._value.getValue().doubleValue());
-//										transferEvent.setBlockNumber(transactionReceipt.getResult().getBlockNumber().longValue());
-//										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
-//										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
-//										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue() * 1000));
-//										tokenDAOService.insert(transferEvent);
-										logger.info("To: " + event._to.getValue().toString() + 
-												" From: " + event._from.getValue().toString() +
-												" Value: " + event._value.getValue().doubleValue());
+										TransferEvent transferEvent = new TransferEvent();
+										transferEvent.setReceiver(event._to.getValue().toString());
+										transferEvent.setSender(event._from.getValue().toString());
+										transferEvent.setValue(event._value.getValue().doubleValue());
+										transferEvent.setBlockNumber(transactionReceipt.getResult().getBlockNumber().longValue());
+										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
+										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
+										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue() * 1000));
+										tokenDAOService.insert(transferEvent);
 									});
 							});
 					});
