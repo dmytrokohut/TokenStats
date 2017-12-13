@@ -23,19 +23,19 @@ public class TokenController implements ITokenController {
 	
 	private static final String HOST = "http://localhost:8545";
 	private static final String CONTRACT_ADDRESS = "0x888666CA69E0f178DED6D75b5726Cee99A87D698".toLowerCase();
-	private static final String PASSWORD = "ether1998";
-	private static final String PATH_TO_WALLET_FILE = "/home/dkohut/.ethereum/keystore/"
-			+ "UTC--2017-12-05T18-01-18.787929411Z--9f5a41ccf09d026ad7866ae44f4cca5e95c37454";
+	private static final String PASSWORD = "";
+	private static final String PATH_TO_WALLET_FILE = "";
 	private static final Logger logger = Logger.getLogger(TokenController.class.getName());
 	
-	private static long SEPTEMBER_FIRST_BLOCK = 4224657L;
-	private static long SEPTEMBER_LAST_BLOCK = 4325758L;
+	private static final long FIRST_BLOCK = 4224657L;
+	private static final long LAST_BLOCK = 4725330L;
 	
 	private Web3j web3j;
 	private Credentials credentials;
 	private IconomiToken token;	
 	
 	private static TokenDAOService tokenDAOService = new TokenDAOService();
+	
 	
 	public void setWeb3j() {
 		web3j = Web3j.build(new HttpService(HOST));
@@ -59,8 +59,8 @@ public class TokenController implements ITokenController {
 		logger.info("Start of transactions downloading");
 		
 		web3j.replayBlocksObservable(
-				new DefaultBlockParameterNumber(SEPTEMBER_FIRST_BLOCK), 
-				new DefaultBlockParameterNumber(SEPTEMBER_LAST_BLOCK),
+				new DefaultBlockParameterNumber(FIRST_BLOCK), 
+				new DefaultBlockParameterNumber(LAST_BLOCK),
 				true)
 			.doOnError(TokenController::logError)
 			.doOnCompleted(TokenController::generateFile)
@@ -71,22 +71,25 @@ public class TokenController implements ITokenController {
 					.map(transaction -> TransactionObject.class.cast(transaction))
 					.filter(transaction -> CONTRACT_ADDRESS.equals(transaction.getTo()) || CONTRACT_ADDRESS.equals(transaction.getFrom()))
 					.forEach(transaction -> {
-						logger.info("Remain blocks: " + (SEPTEMBER_LAST_BLOCK - transaction.getBlockNumber().longValue()));
+						logger.info("Remain blocks: " + (LAST_BLOCK - transaction.getBlockNumber().longValue()));
 						web3j.ethGetTransactionReceipt(transaction.getHash())
 							.sendAsync()
 							.thenAccept(transactionReceipt -> {
 								token.getTransferEvents(transactionReceipt.getResult())
 									.forEach(event -> {
 										transactionReceipt.getResult().setContractAddress(CONTRACT_ADDRESS);
-										TransferEvent transferEvent = new TransferEvent();
-										transferEvent.setReceiver(event._to.getValue().toString());
-										transferEvent.setSender(event._from.getValue().toString());
-										transferEvent.setValue(event._value.getValue().longValue());
-										transferEvent.setBlockNumber(transactionReceipt.getResult().getBlockNumber().longValue());
-										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
-										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
-										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue() * 1000));
-										tokenDAOService.insert(transferEvent);
+//										TransferEvent transferEvent = new TransferEvent();
+//										transferEvent.setReceiver(event._to.getValue().toString());
+//										transferEvent.setSender(event._from.getValue().toString());
+//										transferEvent.setValue(event._value.getValue().doubleValue());
+//										transferEvent.setBlockNumber(transactionReceipt.getResult().getBlockNumber().longValue());
+//										transferEvent.setTransactionHash(transactionReceipt.getResult().getTransactionHash());
+//										transferEvent.setContractAddress(transactionReceipt.getResult().getContractAddress());
+//										transferEvent.setCreationDate(new Timestamp(block.getBlock().getTimestamp().longValue() * 1000));
+//										tokenDAOService.insert(transferEvent);
+										logger.info("To: " + event._to.getValue().toString() + 
+												" From: " + event._from.getValue().toString() +
+												" Value: " + event._value.getValue().doubleValue());
 									});
 							});
 					});

@@ -9,7 +9,7 @@ public class TransferEvent {
 	private Long id;
 	private String receiver;
 	private String sender;
-	private Long value;
+	private Double value;
 	private Long blockNumber;
 	private String transactionHash;
 	private String contractAddress;
@@ -24,7 +24,7 @@ public class TransferEvent {
 			Long id,
 			String receiver, 
 			String sender, 
-			Long value, 
+			Double value, 
 			Long blockNumber, 
 			String transactionHash, 
 			String contractAddress, 
@@ -64,11 +64,11 @@ public class TransferEvent {
 		this.sender = sender;
 	}
 
-	public Long getValue() {
+	public Double getValue() {
 		return value;
 	}
 
-	public void setValue(Long value) {
+	public void setValue(Double value) {
 		this.value = value;
 	}
 
@@ -109,7 +109,7 @@ public class TransferEvent {
 				resultSet.getLong("id"), 
 				resultSet.getString("receiver"), 
 				resultSet.getString("sender"),
-				resultSet.getLong("value"), 
+				resultSet.getDouble("value"), 
 				resultSet.getLong("block_number"), 
 				resultSet.getString("transaction_hash"),
 				resultSet.getString("contract_address"), 
